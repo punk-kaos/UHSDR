@@ -3,7 +3,7 @@
 	<EmBitzVersion release="1.11" revision="0" />
 	<FileVersion major="1" minor="0" />
 	<Project>
-		<Option title="mchfF7" />
+		<Option title="OVI40-F7" />
 		<Option pch_mode="2" />
 		<Option compiler="armgcc_eb" />
 		<Build>
@@ -89,7 +89,7 @@
 			</Target>
 		</Build>
 		<VirtualTargets>
-			<Add alias="All" targets="Release;ReleaseSmall;" />
+			<Add alias="All" targets="Debug;Release;ReleaseSmall;" />
 		</VirtualTargets>
 		<Device>
 			<Add option="$device=cortex-m7" />
@@ -170,14 +170,6 @@
 			<Add option="--gc-sections" />
 			<Add option="-Llibs" />
 		</Linker>
-		<Unit filename="..\mchf-eclipse\linker\arm-gcc-link_f4_flash1024k.ld" />
-		<Unit filename="..\mchf-eclipse\linker\arm-gcc-link_f4_flash512k.ld" />
-		<Unit filename="..\mchf-eclipse\basesw\ovi40\Drivers\CMSIS\Device\ST\STM32F7xx\Source\Templates\gcc\startup_stm32f767xx.S">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\mchf-eclipse\basesw\ovi40\Drivers\CMSIS\Device\ST\STM32F7xx\Source\Templates\system_stm32f7xx.c">
-			<Option compilerVar="CC" />
-		</Unit>
 		<Unit filename="..\mchf-eclipse\basesw\ovi40\Middlewares\ST\STM32_USB_Device_Library\Core\Src\usbd_core.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -250,10 +242,16 @@
 		<Unit filename="..\mchf-eclipse\basesw\ovi40\Src\spi.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\mchf-eclipse\basesw\ovi40\Src\startup_stm32f767xx.S">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\mchf-eclipse\basesw\ovi40\Src\stm32f7xx_hal_msp.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\mchf-eclipse\basesw\ovi40\Src\stm32f7xx_it.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\mchf-eclipse\basesw\ovi40\Src\system_stm32f7xx.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\mchf-eclipse\basesw\ovi40\Src\tim.c">
@@ -275,6 +273,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\mchf-eclipse\drivers\audio\audio_management.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\mchf-eclipse\drivers\audio\audio_nr.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\mchf-eclipse\drivers\audio\codec\codec.c">
@@ -427,6 +428,9 @@
 		<Unit filename="..\mchf-eclipse\drivers\audio\freedv_uhsdr.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\mchf-eclipse\drivers\audio\psk.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\mchf-eclipse\drivers\audio\rtty.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -437,6 +441,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\mchf-eclipse\drivers\cat\cat_driver.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\mchf-eclipse\drivers\freedv\c2wideband.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\mchf-eclipse\drivers\freedv\codebook.c">
@@ -463,6 +470,12 @@
 		<Unit filename="..\mchf-eclipse\drivers\freedv\codebookmel.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\mchf-eclipse\drivers\freedv\codebooknewamp1.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\mchf-eclipse\drivers\freedv\codebooknewamp1_energy.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\mchf-eclipse\drivers\freedv\codebookres.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -479,6 +492,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\mchf-eclipse\drivers\freedv\cohpsk.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\mchf-eclipse\drivers\freedv\dct2.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\mchf-eclipse\drivers\freedv\dump.c">
@@ -511,6 +527,12 @@
 		<Unit filename="..\mchf-eclipse\drivers\freedv\golay23.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\mchf-eclipse\drivers\freedv\gp_interleaver.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\mchf-eclipse\drivers\freedv\interldpc.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\mchf-eclipse\drivers\freedv\interp.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -529,13 +551,25 @@
 		<Unit filename="..\mchf-eclipse\drivers\freedv\lsp.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\mchf-eclipse\drivers\freedv\mbest.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\mchf-eclipse\drivers\freedv\modem_stats.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\mchf-eclipse\drivers\freedv\mpdecode_core.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\mchf-eclipse\drivers\freedv\newamp1.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\mchf-eclipse\drivers\freedv\nlp.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\mchf-eclipse\drivers\freedv\octave.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\mchf-eclipse\drivers\freedv\ofdm.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\mchf-eclipse\drivers\freedv\pack.c">
@@ -565,6 +599,9 @@
 		<Unit filename="..\mchf-eclipse\drivers\ui\lcd\ui_lcd_hy28_fonts.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\mchf-eclipse\drivers\ui\lcd\ui_lcd_layouts.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\mchf-eclipse\drivers\ui\lcd\ui_spectrum.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -577,13 +614,16 @@
 		<Unit filename="..\mchf-eclipse\drivers\ui\menu\ui_menu_structure.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\mchf-eclipse\drivers\ui\oscillator\soft_tcxo.c">
+		<Unit filename="..\mchf-eclipse\drivers\ui\oscillator\osc_interface.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\mchf-eclipse\drivers\ui\oscillator\osc_si5351a.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\mchf-eclipse\drivers\ui\oscillator\osc_si570.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\mchf-eclipse\drivers\ui\oscillator\osc_si5351a.c">
+		<Unit filename="..\mchf-eclipse\drivers\ui\oscillator\soft_tcxo.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\mchf-eclipse\drivers\ui\radio_management.c">
@@ -593,6 +633,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\mchf-eclipse\drivers\ui\ui_driver.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\mchf-eclipse\drivers\ui\ui_vkeybrd.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="..\mchf-eclipse\drivers\usb\app\usb_device.c">
@@ -625,9 +668,14 @@
 		<Unit filename="..\mchf-eclipse\hardware\uhsdr_hw_i2c.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\mchf-eclipse\hardware\uhsdr_keypad.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\mchf-eclipse\hardware\uhsdr_rtc.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="..\mchf-eclipse\linker\arm-gcc-link_f4_flash1024k.ld" />
+		<Unit filename="..\mchf-eclipse\linker\arm-gcc-link_f4_flash512k.ld" />
 		<Unit filename="..\mchf-eclipse\Makefile" />
 		<Unit filename="..\mchf-eclipse\misc\config_storage.c">
 			<Option compilerVar="CC" />
