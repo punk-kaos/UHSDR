@@ -373,12 +373,17 @@ static Oscillator_ResultCodes_t Si5351a_PrepareNextFrequency(uint32_t freq, int 
 	si5351a_state.next.phasedOutput = freq > SI5351_MIN_FREQ_PHASE90;
 	if (si5351a_state.next.phasedOutput == false)
 	{
-		freq *= 4;
+	//	freq *= 4;
 		// we are going to drive a johnson counter with 4x desired frequency
 		// to get two 1/4 clock aka 90 degrees phase shifted clocks with frequency freq
 	}
+	//freq *= 4;
+	if (freq <65000000) {freq *=4; }   
+	if (freq >270000000) { freq /=2; }
+
 #endif
 	return Si5351a_CalculateConfig(freq, &si5351a_state.next, &si5351a_state.current) == true?OSC_OK:OSC_TUNE_IMPOSSIBLE;
+
 }
 
 static Oscillator_ResultCodes_t Si5351a_ChangeToNextFrequency()

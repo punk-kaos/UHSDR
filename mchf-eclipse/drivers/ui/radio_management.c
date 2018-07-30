@@ -884,11 +884,11 @@ void RadioManagement_SetBandPowerFactor(uchar band)
     {
         if(ts.flags1 & FLAGS1_TX_OUTSIDE_BANDS)
         {               // TX outside bands **very dirty hack**: I use constant for power
-          pf_bandvalue = 12; // because no factor is known outside bands
+          //pf_bandvalue = 12; // because no factor is known outside bands
         }               // I never will use this function (DF8OE)
         else
         {
-          pf_bandvalue = 3; // use very low value in case of wrong call to this function
+          //pf_bandvalue = 3; // use very low value in case of wrong call to this function
         }
     }
     else

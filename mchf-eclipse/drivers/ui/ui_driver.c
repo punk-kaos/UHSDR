@@ -2202,8 +2202,8 @@ void UiDriver_InitBandSet()
         vfo[VFO_B].enabled[BAND_MODE_2200] = false;
         break;
     case FOUND_RF_BOARD_OVI40:
-        vfo[VFO_A].enabled[BAND_MODE_70] = false;
-        vfo[VFO_B].enabled[BAND_MODE_70] = false;
+        vfo[VFO_A].enabled[BAND_MODE_4] = false;
+        vfo[VFO_B].enabled[BAND_MODE_4] = false;
         vfo[VFO_A].enabled[BAND_MODE_23] = false;
         vfo[VFO_B].enabled[BAND_MODE_23] = false;
         vfo[VFO_A].enabled[BAND_MODE_23] = false;
