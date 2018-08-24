@@ -20,6 +20,7 @@
 #include "softdds.h"
 #include "uhsdr_hw_i2s.h"
 #include "uhsdr_board.h"
+//#include "audio_convolution.h"
 
 // 16 or 24 bits from Codec
 // 24 bits are not supported anywhere in the recent code!
@@ -30,8 +31,16 @@
 //const float32_t IQ_SAMPLE_RATE_F = ((float32_t)IQ_SAMPLE_RATE);
 
 
+typedef struct {
+    __packed int16_t l;
+    __packed int16_t r;
+} AudioSample_t;
 
-
+#ifdef USE_CONVOLUTION
+typedef struct {
+   COMP samples[SAMPLE_BUFFER_SIZE];
+}  Sample_Buffer;
+#endif
 
 // -----------------------------
 // FFT buffer, this is double the size of the length of the FFT used for spectrum display and waterfall spectrum
@@ -73,15 +82,21 @@
     #define NUM_AUDIO_CHANNELS 1
 #endif
 
+
+
 typedef struct
 {
     // Stereo buffers
     float32_t               i_buffer[IQ_BLOCK_SIZE];
     float32_t               q_buffer[IQ_BLOCK_SIZE];
 
-    float32_t               a_buffer[2][IQ_BLOCK_SIZE];
     float32_t               agc_valbuf[IQ_BLOCK_SIZE];   // holder for "running" AGC value
     float32_t               DF;
+
+    float32_t               a_buffer[2][IQ_BLOCK_SIZE];
+
+
+    // for SAM demodulation
     float32_t               pll_fmax;
     // DX adjustments: zeta = 0.15, omegaN = 100.0
     // very stable, but does not lock very fast
@@ -594,6 +609,16 @@ int32_t AudioDriver_GetTranslateFreq();
 void AudioDriver_SetSamPllParameters (void);
 void AudioDriver_SetupAgcWdsp(void);
 float log10f_fast(float X);
+void AudioDriver_FreqConversion(float32_t* i_buffer, float32_t* q_buffer, int16_t blockSize, int16_t dir);
+#ifdef USE_TWO_CHANNEL_AUDIO
+void AudioDriver_RxAgcWdsp(int16_t blockSize, float32_t *agcbuffer1, float32_t *agcbuffer2);
+#else
+void AudioDriver_RxAgcWdsp(int16_t blockSize, float32_t *agcbuffer1);
+#endif
+void AudioDriver_RxHandleIqCorrection(const uint16_t blockSize);
+bool AudioDriver_RxProcessorDigital(AudioSample_t * const src, float32_t * const dst, const uint16_t blockSize);
+void AudioDriver_SpectrumNoZoomProcessSamples(const uint16_t blockSize);
+void AudioDriver_SpectrumZoomProcessSamples(const uint16_t blockSize);
 
 void RttyDecoder_Init();
 
@@ -608,7 +633,9 @@ void AudioDriver_I2SCallback(int16_t *src, int16_t *dst, int16_t *audioDst, int1
 
 // Public Audio
 extern AudioDriverState	ads;
-extern __IO SMeter              sm;
+extern __IO SMeter       sm;
+
+extern AudioDriverBuffer adb;
 
 typedef struct SnapCarrier
 {
@@ -616,6 +643,9 @@ typedef struct SnapCarrier
 } SnapCarrier;
 
 extern SnapCarrier sc;
+
+
+
 
 #ifdef USE_LEAKY_LMS
 #define LEAKYLMSDLINE_SIZE 256 //512 // was 256 //2048   // dline_size
