@@ -347,7 +347,7 @@ struct mchf_waterfall
 
 #define	BAND_FILTER_UPPER_10		32000000			// Upper limit for 10 meter filter
 //
-#define	BAND_FILTER_UPPER_6		40000000			// Upper limit for 6 meter filter
+#define	BAND_FILTER_UPPER_6		60000000			// Upper limit for 6 meter filter
 //
 #define	BAND_FILTER_UPPER_4		70000000			// Upper limit for 4 meter filter
 //
