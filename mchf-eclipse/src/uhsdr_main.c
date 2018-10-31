@@ -25,6 +25,8 @@
 // serial EEPROM driver
 #include "uhsdr_hw_i2c.h"
 
+#include "uhsdr_hmc1023.h"
+
 // Audio Driver
 #include "drivers/audio/audio_driver.h"
 #include "drivers/audio/audio_management.h"
@@ -368,6 +370,7 @@ void TransceiverStateInit(void)
 //	ts.nr_vad_delay = 7;
 	ts.NR_decimation_enable = true;
 	ts.nr_fft_256_enable = true;
+	ts.special_functions_enabled = 0;
 	NR2.width = 4;
 	NR2.power_threshold = 0.40;
 	NR2.power_threshold_int = 40;
@@ -473,6 +476,32 @@ int mchfMain(void)
         Board_GreenLed(LED_STATE_ON);
     }
 
+	// detection routine for special bootloader version strings which do enable debug or development functions
+	char out[14];
+    for(uint8_t* begin = (uint8_t*)0x8000000; begin < (uint8_t*)EEPROM_START_ADDRESS-8; begin++)
+    {
+    	if (memcmp("Version: ",begin,9) == 0)
+        {
+        	snprintf(out,13, "%s", &begin[9]);
+        	for (uint8_t i=1; i<13; i++)
+        	{
+        	  if (out[i] == '\0')
+        	  {
+        		if (out[i-1] == 'a')
+        		{
+				  ts.special_functions_enabled = 1;
+				}
+        		if (out[i-1] == 's')
+        		{
+				  ts.special_functions_enabled = 2;
+				}
+			  	break;
+			  }
+			}
+            break;
+        }
+	}
+
 	if(Si570_IsPresent())
 	{
 	  ts.si570_is_present = true;
@@ -529,6 +558,9 @@ int mchfMain(void)
 	}
     profileTimedEventInit();
 
+#ifdef USE_HMC1023
+    hmc1023_init();
+#endif
 
     // Audio HW init
     AudioDriver_Init();

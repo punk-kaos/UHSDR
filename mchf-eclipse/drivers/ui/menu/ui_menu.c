@@ -23,6 +23,7 @@
 #include "serial_eeprom.h"
 #include "ui_spectrum.h"
 #include "rtc.h"
+#include "uhsdr_hmc1023.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -4193,7 +4194,58 @@ void UiMenu_UpdateItem(uint16_t select, uint16_t mode, int pos, int var, char* o
             break;
         }
         break;
+#ifdef USE_HMC1023
+        case MENU_DEBUG_HMC1023_COARSE:
+            var_change = UiDriverMenuItemChangeUInt8(var, mode, &hmc1023.coarse,0,8,0,1);
+            if (var_change)
+            {
+                hmc1023_set_coarse(hmc1023.coarse);
+            }
+            snprintf(options,32," %2d",hmc1023.coarse);
+            break;
+        case MENU_DEBUG_HMC1023_FINE:
+            var_change = UiDriverMenuItemChangeUInt8(var, mode, &hmc1023.fine,0,11,0,1);
+            if (var_change)
+            {
+                hmc1023_set_fine(hmc1023.fine);
+            }
+            snprintf(options,32," %2d",hmc1023.fine);
+            break;
+        case MENU_DEBUG_HMC1023_OPAMP:
+             var_change = UiDriverMenuItemChangeUInt8(var, mode, &hmc1023.opamp,0,3,0,1);
+             if (var_change)
+             {
+                 hmc1023_set_bias_opamp(hmc1023.opamp);
+             }
+             snprintf(options,32," %2d",hmc1023.opamp);
+             break;
+        case MENU_DEBUG_HMC1023_DRVR:
+             var_change = UiDriverMenuItemChangeUInt8(var, mode, &hmc1023.drvr,0,3,0,1);
+             if (var_change)
+             {
+                 hmc1023_set_bias_drvr(hmc1023.drvr);
+             }
+             snprintf(options,32," %2d",hmc1023.drvr);
+             break;
 
+        case MENU_DEBUG_HMC1023_GAIN:
+            var_change = UiDriverMenuItemChangeEnableOnOffBool(var, mode, &hmc1023.gain,0,options,&clr);
+            if (var_change)
+            {
+                hmc1023_set_gain(hmc1023.gain);
+            }
+            break;
+
+        case MENU_DEBUG_HMC1023_BYPASS:
+            var_change = UiDriverMenuItemChangeEnableOnOffBool(var, mode, &hmc1023.bypass,0,options,&clr);
+            if (var_change)
+            {
+                hmc1023_set_bypass(hmc1023.bypass);
+            }
+
+            break;
+
+#endif
     default:                        // Move to this location if we get to the bottom of the table!
         txt_ptr = "ERROR!";
         break;
