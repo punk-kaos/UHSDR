@@ -47,14 +47,14 @@ static void CatDriver_CatEnableTX(bool enable)
     {
         if(RadioManagement_IsTxDisabled() == false)
         {
-            ts.ptt_req = true;
+            RadioManagement_Request_TxOn();
             cat_driver.cat_ptt_active = true;
         }
     }
     else
     {
-        ts.ptt_req = false;
         cat_driver.cat_ptt_active = false;
+        RadioManagement_Request_TxOff();
     }
 }
 
@@ -1035,7 +1035,7 @@ static void CatDriver_HandleCommands()
 
             if(ts.xlat == 0)
             {
-                fdelta = (ts.tx_audio_source == TX_AUDIO_DIGIQ)?AudioDriver_GetTranslateFreq()*4:0;
+                fdelta = (ts.tx_audio_source == TX_AUDIO_DIGIQ)?AudioDriver_GetTranslateFreq()*TUNE_MULT:0;
                 // If we are in DIGITAL IQ Output mode, use real tune frequency frequency instead
                 // translated RX frequency
             }

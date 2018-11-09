@@ -70,7 +70,7 @@ void HAL_GPIO_EXTI_Callback (uint16_t GPIO_Pin)
         // Call handler
     	if (Board_PttDahLinePressed() && ts.dmod_mode != DEMOD_SAM)
     	{  // was PTT line low? Not in a RX Only Mode?
-    		ts.ptt_req = true;     // yes - ONLY then do we activate PTT!  (e.g. prevent hardware bug from keying PTT!)
+    	    RadioManagement_Request_TxOn();     // yes - ONLY then do we activate PTT!  (e.g. prevent hardware bug from keying PTT!)
     		if(ts.dmod_mode == DEMOD_CW || is_demod_rtty() || ts.cw_text_entry)
     		{
     			CwGen_DahIRQ();     // Yes - go to CW state machine
@@ -80,7 +80,7 @@ void HAL_GPIO_EXTI_Callback (uint16_t GPIO_Pin)
     case PADDLE_DIT:
         if((ts.dmod_mode == DEMOD_CW || is_demod_rtty() || ts.cw_text_entry) && Board_DitLinePressed())
         {
-            ts.ptt_req = true;
+            RadioManagement_Request_TxOn();
             CwGen_DitIRQ();
         }
         break;
@@ -288,7 +288,6 @@ void TransceiverStateInit(void)
     ts.filter_disp_colour = FILTER_DISP_COLOUR_DEFAULT;
     ts.vfo_mem_flag = 0;						// when TRUE, memory mode is enabled
     ts.mem_disp = 0;						// when TRUE, memory display is enabled
-    ts.load_eeprom_defaults = 0;					// when TRUE, defaults are loaded when "UiDriverLoadEepromValues()" is called - must be saved by user w/power-down to be permanent!
     ts.fm_subaudible_tone_gen_select = 0;				// lookup ("tone number") used to index the table generation (0 corresponds to "tone disabled")
     ts.fm_tone_burst_mode = 0;					// this is the setting for the tone burst generator
     ts.fm_tone_burst_timing = 0;					// used to time the duration of the tone burst
@@ -297,7 +296,7 @@ void TransceiverStateInit(void)
     ts.beep_active = 1;						// TRUE if beep is active
     ts.beep_frequency = DEFAULT_BEEP_FREQUENCY;			// beep frequency, in Hz
     ts.beep_loudness = DEFAULT_BEEP_LOUDNESS;			// loudness of keyboard/CW sidetone test beep
-    ts.load_freq_mode_defaults = 0;					// when TRUE, load frequency defaults into RAM when "UiDriverLoadEepromValues()" is called - MUST be saved by user IF these are to take effect!
+
     ts.ser_eeprom_type = 0;						// serial eeprom not present
     ts.configstore_in_use = CONFIGSTORE_IN_USE_FLASH;					// serial eeprom not in use
 
@@ -305,7 +304,6 @@ void TransceiverStateInit(void)
     ts.display = &mchf_display;
 
     ts.show_debug_info = false;					// dont show coordinates on LCD
-    ts.multi = 0;							// non-translate
     ts.tune_power_level = 0;					// Tune with FULL POWER
     ts.xlat = 0;							// 0 = report base frequency, 1 = report xlat-frequency;
     ts.audio_int_counter = 0;					// test DL2FW
@@ -476,32 +474,6 @@ int mchfMain(void)
         Board_GreenLed(LED_STATE_ON);
     }
 
-	// detection routine for special bootloader version strings which do enable debug or development functions
-	char out[14];
-    for(uint8_t* begin = (uint8_t*)0x8000000; begin < (uint8_t*)EEPROM_START_ADDRESS-8; begin++)
-    {
-    	if (memcmp("Version: ",begin,9) == 0)
-        {
-        	snprintf(out,13, "%s", &begin[9]);
-        	for (uint8_t i=1; i<13; i++)
-        	{
-        	  if (out[i] == '\0')
-        	  {
-        		if (out[i-1] == 'a')
-        		{
-				  ts.special_functions_enabled = 1;
-				}
-        		if (out[i-1] == 's')
-        		{
-				  ts.special_functions_enabled = 2;
-				}
-			  	break;
-			  }
-			}
-            break;
-        }
-	}
-
 	if(Si570_IsPresent())
 	{
 	  ts.si570_is_present = true;
@@ -528,6 +500,34 @@ int mchfMain(void)
     // Usb Host driver init
     //keyb_driver_init();
 
+#if 1
+	// detection routine for special bootloader version strings which do enable debug or development functions
+	char out[14];
+    for(uint8_t* begin = (uint8_t*)0x8000000; begin < (uint8_t*)EEPROM_START_ADDRESS-8; begin++)
+    {
+    	if (memcmp("Version: ",begin,9) == 0)
+        {
+        	snprintf(out,13, "%s", &begin[9]);
+        	for (uint8_t i=1; i<13; i++)
+        	{
+        	  if (out[i] == '\0')
+        	  {
+        		if (out[i-1] == 'a')
+        		{
+				  ts.special_functions_enabled = 1;
+				}
+        		if (out[i-1] == 's')
+        		{
+				  ts.special_functions_enabled = 2;
+				}
+			  break;
+			  }
+			}
+        break;
+        }
+	}
+#endif
+
     // UI HW init
     UiDriver_Init();
 
@@ -535,12 +535,22 @@ int mchfMain(void)
     if(mchf_touchscreen.present)
     {
     	//preventing DSP functions mask to have not proper value
-    	ts.dsp_mode_mask|=1;
-    	ts.dsp_mode_mask&=(1<<DSP_SWITCH_MAX)-1;
+        if (ts.dsp_mode_mask == 0 || ts.dsp_mode_mask == 1)
+        {
+            // empty mask is invalid, set it to all entries enabled
+            ts.dsp_mode_mask = DSP_SWITCH_MODEMASK_ENABLE_DEFAULT;
+        }
+        else
+        {
+            // just make sure DSP OFF is always on the list
+            ts.dsp_mode_mask|=DSP_SWITCH_MODEMASK_ENABLE_DSPOFF;
+        }
+
+    	ts.dsp_mode_mask&=DSP_SWITCH_MODEMASK_ENABLE_MASK;
     }
     else
     {
-    	ts.dsp_mode_mask=(1<<DSP_SWITCH_MAX)-1;		//disable masking when no touchscreen controller detected
+    	ts.dsp_mode_mask=DSP_SWITCH_MODEMASK_ENABLE_DEFAULT;		//disable masking when no touchscreen controller detected
     }
 
     // we now reinit the I2C buses with the configured speed settings. Loading the EEPROM always uses the default speed!
@@ -571,7 +581,7 @@ int mchfMain(void)
     AudioManagement_CalcSubaudibleGenFreq();		// load/set current FM subaudible tone settings for generation
     AudioManagement_CalcSubaudibleDetFreq();		// load/set current FM subaudible tone settings	for detection
     AudioManagement_LoadToneBurstMode();	// load/set tone burst frequency
-    AudioManagement_LoadBeepFreq();		// load/set beep frequency
+    AudioManagement_KeyBeepPrepare();		// load/set beep frequency
 
     AudioFilter_SetDefaultMemories();
 
