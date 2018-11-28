@@ -404,7 +404,7 @@ void MiscInit(void)
 }
 
 
-const static uint8_t canary_word[16] = { 'D', 'O',' ' ,'N', 'O', 'T', ' ', 'O', 'V', 'E', 'R' , 'W', 'R' , 'I', 'T','E' };
+static const uint8_t canary_word[16] = { 'D', 'O',' ' ,'N', 'O', 'T', ' ', 'O', 'V', 'E', 'R' , 'W', 'R' , 'I', 'T','E' };
 uint8_t* canary_word_ptr;
 
 // in hex 44 4f 20 4e 4f 54 20 4f 56 45 52 57 52 49 54 45
@@ -503,7 +503,7 @@ int mchfMain(void)
     // Usb Host driver init
     //keyb_driver_init();
 
-#if 0
+#if 1
 	// detection routine for special bootloader version strings which do enable debug or development functions
 	char out[14];
     for(uint8_t* begin = (uint8_t*)0x8000000; begin < (uint8_t*)EEPROM_START_ADDRESS-8; begin++)
@@ -580,6 +580,14 @@ int mchfMain(void)
 
     UiDriver_StartupScreen_LogIfProblem(ts.codec_present == false,
             "Audiocodec WM8731 NOT detected!");
+
+    const char* bl_version = Board_BootloaderVersion();
+
+    UiDriver_StartupScreen_LogIfProblem(
+            (bl_version[0] == '1' || bl_version[0] == '2' || bl_version[0] == '3' || bl_version[0] == '4')  && bl_version[1] == '.',
+
+                "Upgrade bootloader to 5.0.1 or newer");
+
 
     AudioManagement_CalcSubaudibleGenFreq();		// load/set current FM subaudible tone settings for generation
     AudioManagement_CalcSubaudibleDetFreq();		// load/set current FM subaudible tone settings	for detection

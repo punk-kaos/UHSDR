@@ -9,6 +9,7 @@
 # Rev. 2016-04-06 cleanup - Stephan HB9ocq
 # Rev. 06/12/2016 possibility of choosing individual toolchain - Andreas Richter DF8OE
 # Rev. 2017-01-06 HB9ocq - added versioning of build: extracted from source, propagated to env.vars
+# Rev. 20/11/2018 RV9YW (m-chichikalov) - fixed limitation of parameter length on cmd.exe windows by passing all obj. as one file to linker
 
 #  -*- makefile -*-
 # if you want to build in a different directory than this one
@@ -24,9 +25,13 @@ endif
 
 # F4-512KB results in "small build for F4"
 ifeq ($(BUILDFOR),F4-512KB)
+  FW_LINKERFILE_F4=arm-gcc-link_f4_flash512k.ld
   BUILDFOR=F4
-  CONFIGFLAGS="-DIS_SMALL_BUILD"
+  CONFIGFLAGS +="-DIS_SMALL_BUILD"
+else
+  FW_LINKERFILE_F4=arm-gcc-link_f4_flash1024k.ld
 endif
+
 ifeq ($(BUILDFOR),F7)
   TRX_NAME="OVI40 F7"
 endif
@@ -47,9 +52,6 @@ ifeq ($(TRX_NAME),mcHF)
 endif
 ifndef TRX_NAME
   TRX_NAME='mcHF QRP'
-endif
-ifdef LCD_TYPE
-  CONFIGFLAGS += -DLCD_TYPE=$(LCD_TYPE)
 endif
 
 # If you want to hold different toolchains on Linux in /opt you can get them from
@@ -80,7 +82,7 @@ endif
 
 COMPILEFLAGS := -DUSE_HAL_DRIVER -DDEBUG -DUSE_FULL_ASSERT -DTRACE -D_GNU_SOURCE \
 	  -DTRX_ID=\"$(TRX_ID)\" -DTRX_NAME=\"$(TRX_NAME)\" $(CONFIGFLAGS) \
-	  -ffunction-sections -fdata-sections -flto -Wall -Wno-unused-function -g3
+	  -ffunction-sections -fdata-sections -flto -Wall -Wuninitialized -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -g3
 
 # identifying of "official builds by DF8OE"
 ifneq (,$(wildcard ../DF8OE))
@@ -98,10 +100,10 @@ BASECFLAGS_H7  = $(MACHFLAGS_H7)  $(COMPILEFLAGS) $(EXTRACFLAGS)
 
 LINKERLOC=$(ROOTLOC)/linker
 
-LDFLAGS_BASE := -L$(LINKERLOC) -flto --specs=nano.specs -g3
-LDFLAGS_F4 := $(LDFLAGS_BASE) $(MACHFLAGS_F4)
-LDFLAGS_F7 := $(LDFLAGS_BASE) $(MACHFLAGS_F7) 
-LDFLAGS_H7 := $(LDFLAGS_BASE) $(MACHFLAGS_H7) 
+LDFLAGS_BASE = -L$(LINKERLOC) -flto --specs=nano.specs -g3 $(CFLAGS) $(CXXFLAGS)
+LDFLAGS_F4 = $(LDFLAGS_BASE) $(MACHFLAGS_F4)
+LDFLAGS_F7 = $(LDFLAGS_BASE) $(MACHFLAGS_F7) 
+LDFLAGS_H7 = $(LDFLAGS_BASE) $(MACHFLAGS_H7) 
 
 LIBS := -lm -lc -lnosys
 
@@ -138,7 +140,7 @@ ifeq ($(BUILDFOR),F4)
 $(BOOTLOADER).elf : CFLAGS = ${BASECFLAGS_F4} -Os -DBOOTLOADER_BUILD
 $(FIRMWARE).elf : CFLAGS = ${BASECFLAGS_F4} -O2
 $(BOOTLOADER).elf : LDFLAGS = ${LDFLAGS_F4} -T$(LINKERLOC)/arm-gcc-link-bootloader_f4.ld
-$(FIRMWARE).elf : LDFLAGS = ${LDFLAGS_F4} -T$(LINKERLOC)/arm-gcc-link_f4_flash1024k.ld
+$(FIRMWARE).elf : LDFLAGS = ${LDFLAGS_F4} -T$(LINKERLOC)/$(FW_LINKERFILE_F4)
 	
 
 
@@ -195,6 +197,7 @@ OS = @${PREFIX}/bin/arm-none-eabi-size
 HEX2DFU = $(ROOTLOC)/support/hex2dfu/hex2dfu.py
 
 ifdef SystemRoot  # WINxx
+    HEX2DFU = python $(ROOTLOC)/support/hex2dfu/hex2dfu.py
     CC = arm-none-eabi-gcc
     CXX = arm-none-eabi-g++
     OC = arm-none-eabi-objcopy
@@ -202,6 +205,7 @@ ifdef SystemRoot  # WINxx
 endif
 
 ifdef MSYSTEM
+    HEX2DFU = python $(ROOTLOC)/support/hex2dfu/hex2dfu.py
     CC = arm-none-eabi-gcc
     CXX = arm-none-eabi-g++
     OC = arm-none-eabi-objcopy
@@ -223,6 +227,9 @@ else ifeq ($(shell uname), Darwin)
 else ifeq ($(shell uname), CYGWIN_NT-10.0)
     RM = rm -f
     FixPath = $1
+else
+    RM = rm -f
+    FixPath = $1
 endif
 
 # how to compile individual object files
@@ -233,6 +240,10 @@ BL_OBJS := $(patsubst %.S,%.o,$(patsubst %.cpp,%.o,$(BL_SRC:.c=.o)))
 BL_HAL_OBJS := $(patsubst %.S,%.o,$(patsubst %.cpp,%.o,$(BL_HAL_SRC:.c=.o)))
 
 $(DSPLIB_OBJS): EXTRA_CFLAGS:= -Wno-strict-aliasing
+basesw/%/usbh_mtp.o: CFLAGS += -Wno-implicit-fallthrough
+basesw/%/usbh_msc.o: CFLAGS += -Wno-implicit-fallthrough
+basesw/%/usbh_hid.o: CFLAGS += -Wno-implicit-fallthrough
+basesw/%stm32h7xx_hal_spi.o: CFLAGS += -Wno-strict-aliasing
 
 .S.o:
 	$(ECHO) "  [CC] $@"
@@ -308,13 +319,16 @@ $(BOOTLOADER):  $(BOOTLOADER).bin $(BOOTLOADER).dfu
 # compilation
 $(FIRMWARE).elf:  $(HAL_OBJS) $(DSPLIB_OBJS) $(OBJS)
 	$(ECHO) "  [LD] $@"
-	@$(CXX) $(LDFLAGS)  -Xlinker --gc-sections -Llibs -Wl,-Map,$(FIRMWARE).map -o$@ $^ $(LIBS)
+	@$(file > ./firmware_obj_list.lst,$^)
+	$(CXX) $(LDFLAGS) -Xlinker --gc-sections -Llibs -Wl,-Map,$(FIRMWARE).map -o$@ @./firmware_obj_list.lst $(LIBS)
+	$(RM) $(call FixPath,firmware_obj_list.lst)
 
 # compilation
 $(BOOTLOADER).elf:  $(BL_HAL_OBJS) $(BL_OBJS)
 	$(ECHO) "  [LD] $@"
-	$(CXX) $(LDFLAGS) -Xlinker --gc-sections -Llibs -Wl,-Map,$(BOOTLOADER).map -o$@ $^ $(LIBS)
-
+	@$(file > ./bootloader_obj_list.lst,$^)
+	$(CXX) $(LDFLAGS) -Xlinker --gc-sections -Llibs -Wl,-Map,$(BOOTLOADER).map -o$@ @./bootloader_obj_list.lst $(LIBS)
+	$(RM) $(call FixPath,bootloader_obj_list.lst)
 
 $(TRX_ID).handbook:
 	@$(ROOTLOC)/support/ui/menu/mk-menu-handbook auto
@@ -345,7 +359,6 @@ clean-libs:
 	# remove libs object files (.o)
 	$(RM) $(call FixPath,$(DSPLIB_OBJS))
 	$(RM) $(call FixPath,$(HAL_OBJS))
-
 
 clean:  clean-firmware clean-bootloader clean-libs
 	# remove the executables, map, dmp and all object files (.o)

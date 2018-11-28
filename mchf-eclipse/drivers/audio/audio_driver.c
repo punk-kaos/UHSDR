@@ -723,11 +723,15 @@ void AudioDriver_Init(void)
     ts.dsp_inhibit = 1;
     ads.af_disabled = 1;
 
-    // Reset S meter public
-    sm.skip		= 0;
-    sm.s_count	= 0;
-    sm.curr_max	= 0;
-    sm.gain_calc = 0;	// gain calculation used for S-meter
+    // Reset S meter data
+    sm.s_count = 0;
+
+    // Variables for dbm display --> void calculate_dBm
+    sm.AttackAvedbm = 0.0;
+    sm.DecayAvedbm = 0.0;
+    sm.AttackAvedbmhz = 0.0;
+    sm.DecayAvedbmhz = 0.0;
+
 #if 0
     ads.agc_val = 1;			// Post AF Filter gain (AGC)
     ads.agc_var = 1;			// used in AGC processing

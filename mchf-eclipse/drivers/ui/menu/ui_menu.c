@@ -221,7 +221,7 @@ bool __attribute__ ((noinline)) UiDriverMenuItemChangeInt(int var, uint32_t mode
     return old_val != *val_ptr;
 }
 
-bool inline UiDriverMenuItemChangeInt32(int var, uint32_t mode, volatile int32_t* val_ptr,int val_min,int val_max, int val_default, uint32_t increment)
+inline bool UiDriverMenuItemChangeInt32(int var, uint32_t mode, volatile int32_t* val_ptr,int val_min,int val_max, int val_default, uint32_t increment)
 {
     return UiDriverMenuItemChangeInt(var, mode, (int*)val_ptr,val_min,val_max, val_default, increment);
 }
@@ -480,7 +480,6 @@ void __attribute__ ((noinline)) UiDriverMenuMapStrings(char* output, uint32_t va
     strcpy(output,(value <= string_max)?strings[value]:"UNDEFINED");
 }
 
-
 /**
  * @returns: information for requested item as string. Do not write to this string.
  */
@@ -561,7 +560,7 @@ const char* UiMenu_GetSystemInfo(uint32_t* m_clr_ptr, int info_item)
             snprintf(out,32,"%d",(STM32_GetFlashSize()));
             break;
     case INFO_CPU:
-            snprintf(out,32,"%xh",(STM32_GetSignature()));
+            snprintf(out,32,"%3lx:%04lxh",HAL_GetDEVID(),HAL_GetREVID());
             break;
     case INFO_RAM:
             snprintf(out,32,"%d",(ts.ramsize));
@@ -593,7 +592,7 @@ const char* UiMenu_GetSystemInfo(uint32_t* m_clr_ptr, int info_item)
         const char* i2c_size_unit = "K";
         uint i2c_size = 0;
 
-        if(ts.ser_eeprom_type >= 0 && ts.ser_eeprom_type < SERIAL_EEPROM_DESC_NUM)
+        if(ts.ser_eeprom_type < SERIAL_EEPROM_DESC_NUM)
         {
             i2c_size = SerialEEPROM_eepromTypeDescs[ts.ser_eeprom_type].size / 1024;
         }
@@ -609,36 +608,7 @@ const char* UiMenu_GetSystemInfo(uint32_t* m_clr_ptr, int info_item)
     break;
     case INFO_BL_VERSION:
     {
-        outs = "Unknown BL";
-
-        // We search for string "Version: " in bootloader memory
-        // this assume the bootloader starting at 0x8000000 and being followed by the virtual eeprom
-        // which starts at EEPROM_START_ADDRESS
-        for(uint8_t* begin = (uint8_t*)0x8000000; begin < (uint8_t*)EEPROM_START_ADDRESS-8; begin++)
-        {
-            if (memcmp("Version: ",begin,9) == 0)
-            {
-                snprintf(out,32, "%s", &begin[9]);
-                outs = out;
-                break;
-            }
-            else
-            {
-                if (memcmp("M0NKA 2",begin,7) == 0)
-                {
-                    if (begin[11] == 0xb5)
-                    {
-                        outs = "M0NKA 0.0.0.9";
-                        break;
-                    }
-                    else if (begin[11] == 0xd1)
-                    {
-                        outs = "M0NKA 0.0.0.14";
-                        break;
-                    }
-                }
-            }
-        }
+        outs = Board_BootloaderVersion();
     }
     break;
     case INFO_FW_VERSION:
@@ -4244,6 +4214,15 @@ void UiMenu_UpdateItem(uint16_t select, uint16_t mode, int pos, int var, char* o
             break;
 
 #endif
+        case CONFIG_SMETER_ATTACK:
+            var_change = UiDriverMenuItemChangeUInt8(var, mode, &sm.config.alphaSplit.AttackAlpha, SMETER_ALPHA_MIN, SMETER_ALPHA_MAX, SMETER_ALPHA_ATTACK_DEFAULT,1);
+            snprintf(options,32,"     %d",sm.config.alphaSplit.AttackAlpha);
+            break;
+        case CONFIG_SMETER_DECAY:
+            var_change = UiDriverMenuItemChangeUInt8(var, mode, &sm.config.alphaSplit.DecayAlpha, SMETER_ALPHA_MIN, SMETER_ALPHA_MAX, SMETER_ALPHA_DECAY_DEFAULT,1);
+            snprintf(options,32,"     %d",sm.config.alphaSplit.DecayAlpha);
+            break;
+
     default:                        // Move to this location if we get to the bottom of the table!
         txt_ptr = "ERROR!";
         break;

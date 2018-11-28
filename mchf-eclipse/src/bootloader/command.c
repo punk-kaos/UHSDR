@@ -76,9 +76,9 @@ void FlashFail_Handler(mchf_bootloader_error_t redCount)
     char txt[16] = "Error Code  X";
     txt[12] = redCount + '0';
 
-    BL_PrintLine("");
-    BL_PrintLine(txt);
-    BL_PrintLine(error_help[redCount]);
+    Bootloader_PrintLine("");
+    Bootloader_PrintLine(txt);
+    Bootloader_PrintLine(error_help[redCount]);
 
 
     while(1)
@@ -279,7 +279,9 @@ void COMMAND_DOWNLOAD(void)
 void COMMAND_ResetMCU(uint32_t code)
 {
     *(__IO uint32_t*)(SRAM2_BASE) = code;
-#ifdef STM32F7
+    __DSB();
+#if defined(STM32F7)
+    // || defined(STM32H7) H7 crashes here if we would call SCB_CleanDCache since we do not enable it in the first place in main.c!
     SCB_CleanDCache();
 #endif
     /* Software reset */
