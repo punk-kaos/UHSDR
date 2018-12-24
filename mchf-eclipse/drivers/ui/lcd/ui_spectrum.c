@@ -248,6 +248,7 @@ static void UiSpectrum_UpdateSpectrumPixelParameters()
     static uint8_t old_dmod_mode = 0xFF;
     static uint8_t old_iq_freq_mode = 0xFF;
     static uint16_t old_cw_sidetone_freq = 0;
+    static uint16_t old_rtty_shift = 0;
     static uint8_t old_digital_mode = 0xFF;
 
     static bool force_update = true;
@@ -275,12 +276,13 @@ static void UiSpectrum_UpdateSpectrumPixelParameters()
     }
     bool cur_lsb = RadioManagement_LSBActive(ts.dmod_mode);
 
-    if (cur_lsb != old_lsb || ts.cw_sidetone_freq != old_cw_sidetone_freq || ts.dmod_mode != old_dmod_mode || ts.digital_mode != old_digital_mode || force_update)
+    if (cur_lsb != old_lsb || ts.cw_sidetone_freq != old_cw_sidetone_freq || old_rtty_shift != rtty_ctrl_config.shift_idx || ts.dmod_mode != old_dmod_mode || ts.digital_mode != old_digital_mode || force_update)
     {
         old_lsb = cur_lsb;
         old_cw_sidetone_freq = ts.cw_sidetone_freq;
         old_dmod_mode = ts.dmod_mode;
         old_digital_mode = ts.digital_mode;
+        old_rtty_shift = rtty_ctrl_config.shift_idx;
 
         float32_t tx_vfo_offset = ((float32_t)(((int32_t)RadioManagement_GetTXDialFrequency() - (int32_t)RadioManagement_GetRXDialFrequency())/TUNE_MULT))/sd.hz_per_pixel;
 
@@ -975,6 +977,11 @@ static void UiSpectrum_InitSpectrumDisplayData()
     	sd.fft_iq_len = 1024;
     	sd.cfft_instance = &arm_cfft_sR_f32_len512;
     	break;
+    case RESOLUTION_800_480:	//FIXME: fill with correct values (move to layouts.c ??)
+    	sd.spec_len = 512;
+    	sd.fft_iq_len = 1024;
+    	sd.cfft_instance = &arm_cfft_sR_f32_len512;
+    	break;
     }
 
 
@@ -1360,12 +1367,9 @@ static void UiSpectrum_RedrawSpectrum()
         arm_copy_f32(&sd.FFT_RingBuffer[sd.samp_ptr],&sd.FFT_Samples[0],sd.fft_iq_len-sd.samp_ptr);
         arm_copy_f32(&sd.FFT_RingBuffer[0],&sd.FFT_Samples[sd.fft_iq_len-sd.samp_ptr],sd.samp_ptr);
         sd.reading_ringbuffer = false;
-        sd.state++;
-        break;
+        // Apply gain to collected IQ samples and then do FFT
+        // Scale input according to A/D gain and apply Window function
 
-    // Apply gain to collected IQ samples and then do FFT
-    case 1:		// Scale input according to A/D gain and apply Window function
-    {
     	//        UiSpectrum_FFTWindowFunction(ts.fft_window_type);		// do windowing function on input data to get less "Bin Leakage" on FFT data
         // fixed window type to Hann Window, because it provides excellent bin leakage behaviour AND
     	// it corresponds very well with the coefficients in the quadratic interpolation algorithm that is used
@@ -1374,14 +1378,13 @@ static void UiSpectrum_RedrawSpectrum()
 
         sd.state++;
         break;
-    }
-    case 2:		// Do FFT and calculate complex magnitude
+    case 1:		// Do FFT and calculate complex magnitude
     {
         arm_cfft_f32(sd.cfft_instance, sd.FFT_Samples,0,1);	// Do FFT
         sd.state++;
         break;
     }
-    case 3:
+    case 2:
     {
         // Calculate magnitude
         arm_cmplx_mag_f32( sd.FFT_Samples, sd.FFT_MagData ,sd.spec_len);
@@ -1426,7 +1429,7 @@ static void UiSpectrum_RedrawSpectrum()
     }
 
     //  Low-pass filter amplitude magnitude data
-    case 4:
+    case 3:
     {
     	float32_t filt_factor = 1/(float)ts.spectrum_filter;		// use stored filter setting inverted to allow multiplication
         arm_scale_f32(sd.FFT_AVGData, filt_factor, sd.FFT_Samples, sd.spec_len);	// get scaled version of previous data
@@ -1462,7 +1465,7 @@ static void UiSpectrum_RedrawSpectrum()
     }
 
     // De-linearize and normalize display data and do AGC processing
-    case 5:
+    case 4:
     	if (is_RedrawActive)		//this is needed for overwrite prevention if menu was drawn when sd.state>4
     	{
     		float32_t	min1=100000;
@@ -1484,7 +1487,7 @@ static void UiSpectrum_RedrawSpectrum()
     	sd.state++;
     	break;
 
-    case 6:	// rescale waterfall horizontally, apply brightness/contrast, process pallate and put vertical line on screen, if enabled.
+    case 5:	// rescale waterfall horizontally, apply brightness/contrast, process pallate and put vertical line on screen, if enabled.
     	if (is_RedrawActive)		//this is needed for overwrite prevention if menu was drawn when sd.state>4
     	{
     		if(sd.RedrawType&Redraw_SCOPE)

@@ -129,18 +129,6 @@ void TransceiverStateInit(void)
     ts.audio_spkr_unmute_delay_count		= VOICE_TX2RX_DELAY_DEFAULT;			// TX->RX delay turnaround
 
     ts.nb_setting		= 0;					// Noise Blanker setting
-
-    for (int i = 0; i < IQ_ADJUST_POINTS_NUM; i++)
-    {
-        for (int j = 0; j < IQ_TRANS_NUM; j++)
-        {
-            ts.tx_iq_gain_balance[i].value[j]   = IQ_BALANCE_OFF;                // Default settings for RX and TX gain and phase balance
-            ts.tx_iq_phase_balance[i].value[j]   = IQ_BALANCE_OFF;                // Default settings for RX and TX gain and phase balance
-            ts.rx_iq_gain_balance[i].value[j]   = IQ_BALANCE_OFF;                // Default settings for RX and TX gain and phase balance
-            ts.rx_iq_phase_balance[i].value[j]   = IQ_BALANCE_OFF;                // Default settings for RX and TX gain and phase balance
-        }
-    }
-
     ts.tune_freq		= 0;
     //ts.tune_freq_old	= 0;
 
@@ -240,7 +228,6 @@ void TransceiverStateInit(void)
     // is NEVER reset and is used for timing certain events.
     ts.version_number_release	= 0;			// version release - used to detect firmware change
     ts.version_number_major = 0;				// version build - used to detect firmware change
-    ts.nb_agc_time_const	= 0;				// used to calculate the AGC time constant
     ts.cw_offset_mode	= CW_OFFSET_USB_RX;		// CW offset mode (USB, LSB, etc.)
     ts.cw_lsb			= false;				// Flag that indicates CW operates in LSB mode when TRUE
     ts.iq_freq_mode		= FREQ_IQ_CONV_MODE_DEFAULT;					// used to set/configure the I/Q frequency/conversion mode
@@ -322,27 +309,26 @@ void TransceiverStateInit(void)
 //    ts.dBm_count = 0;						// timer start
     ts.tx_filter = 0;						// which TX filter has been chosen by the user
     ts.iq_auto_correction = 1;              // disable/enable automatic IQ correction
-    ts.twinpeaks_tested = 2;                // twinpeak_tested = 2 --> wait for system to warm up
-    // twinpeak_tested = 0 --> go and test the IQ phase
-    // twinpeak_tested = 1 --> tested, verified, go and have a nice day!
-//    ts.agc_wdsp = 0;
-    ts.agc_wdsp_mode = 2;
-    ts.agc_wdsp_slope = 70;
-    ts.agc_wdsp_hang_enable = 0;
-    ts.agc_wdsp_hang_time = 500;
-    ts.agc_wdsp_hang_thresh = 45;
-    ts.agc_wdsp_thresh = 60;
-    ts.agc_wdsp_action = 0;
-    ts.agc_wdsp_switch_mode = 1;
-    ts.agc_wdsp_hang_action = 0;
-    ts.agc_wdsp_tau_decay[0] = 4000;
-    ts.agc_wdsp_tau_decay[1] = 2000;
-    ts.agc_wdsp_tau_decay[2] = 500;
-    ts.agc_wdsp_tau_decay[3] = 250;
-    ts.agc_wdsp_tau_decay[4] = 50;
-    ts.agc_wdsp_tau_decay[5] = 500;
+    ts.twinpeaks_tested = TWINPEAKS_WAIT;
 
-    ts.agc_wdsp_tau_hang_decay = 200;
+    ts.agc_wdsp_conf.mode = 2;
+    ts.agc_wdsp_conf.slope = 70;
+    ts.agc_wdsp_conf.hang_enable = 0;
+    ts.agc_wdsp_conf.hang_time = 500;
+    ts.agc_wdsp_conf.hang_thresh = 45;
+    ts.agc_wdsp_conf.thresh = 60;
+    ts.agc_wdsp_conf.action = 0;
+    ts.agc_wdsp_conf.switch_mode = 1;
+    ts.agc_wdsp_conf.hang_action = 0;
+    ts.agc_wdsp_conf.tau_decay[0] = 4000;
+    ts.agc_wdsp_conf.tau_decay[1] = 2000;
+    ts.agc_wdsp_conf.tau_decay[2] = 500;
+    ts.agc_wdsp_conf.tau_decay[3] = 250;
+    ts.agc_wdsp_conf.tau_decay[4] = 50;
+    ts.agc_wdsp_conf.tau_decay[5] = 500;
+
+    ts.agc_wdsp_conf.tau_hang_decay = 200;
+
     ts.dbm_constant = 0;
 
     ts.FDV_TX_encode_ready = false;		// FREEDV handshaking test DL2FW
@@ -394,6 +380,8 @@ void TransceiverStateInit(void)
     ts.buffered_tx = false;
     ts.cw_text_entry = false;
     ts.debug_si5351a_pllreset = 2;		//start with "reset on IQ Divider"
+
+    ts.debug_vswr_protection_threshold = 0; // OFF
 }
 
 void MiscInit(void)
@@ -561,15 +549,10 @@ int mchfMain(void)
     mchf_hw_i2c2_init();
 
 	// disable rx iq settings in menu when autocorr is enabled
-	if(ts.iq_auto_correction == 1)
-	{
-	  ts.display_rx_iq = false;
-	}
-	else
-	{
-	  ts.display_rx_iq = true;
-	}
-    profileTimedEventInit();
+    ts.display_rx_iq = ts.iq_auto_correction == 0;
+
+
+	profileTimedEventInit();
 
 #ifdef USE_HMC1023
     hmc1023_init();

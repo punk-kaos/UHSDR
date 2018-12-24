@@ -22,7 +22,9 @@
 
 #ifdef USE_OSC_SI5351A
 // Will be removed and made a dynamic config element
-#define TEST_QUADRATURE
+#ifdef UI_BRD_OVI40
+    #define TEST_QUADRATURE
+#endif
 
 // reference oscillator xtal frequency
 #define SI5351_XTAL_FREQ		27000000			// Crystal frequency
@@ -371,17 +373,23 @@ static Oscillator_ResultCodes_t Si5351a_PrepareNextFrequency(uint32_t freq, int 
 #ifdef TEST_QUADRATURE
 	// TODO: Replace this with a proper configurable switch point, the current limit is the minimum frequency we can do 90 degree phase
 	si5351a_state.next.phasedOutput = freq > SI5351_MIN_FREQ_PHASE90;
+#else
+	si5351a_state.next.phasedOutput = false;
+#endif
 	if (si5351a_state.next.phasedOutput == false)
 	{
 	//	freq *= 4;
 		// we are going to drive a johnson counter with 4x desired frequency
 		// to get two 1/4 clock aka 90 degrees phase shifted clocks with frequency freq
 	}
+<<<<<<< HEAD
 	//freq *= 4;
 	if (freq <65000000) {freq *=4; }   
 	if (freq >270000000) { freq /=2; }
 
 #endif
+=======
+>>>>>>> ba79fff8b0a84d3fca3f3662db4e6397ea112270
 	return Si5351a_CalculateConfig(freq, &si5351a_state.next, &si5351a_state.current) == true?OSC_OK:OSC_TUNE_IMPOSSIBLE;
 
 }

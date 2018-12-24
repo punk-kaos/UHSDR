@@ -1438,6 +1438,16 @@ bool RadioManagement_UpdatePowerAndVSWR()
         // Calculate VSWR from power readings
 
         swrm.vswr = (1+sqrtf(swrm.rev_pwr/swrm.fwd_pwr))/(1-sqrtf(swrm.rev_pwr/swrm.fwd_pwr));
+
+        if (ts.debug_vswr_protection_threshold > 1)
+        {
+        	if(swrm.vswr > ts.debug_vswr_protection_threshold)
+        	{
+        	RadioManagement_DisablePaBias();
+        	swrm.high_vswr_detected = true;
+        	}
+        }
+
         retval = true;
     }
     return retval;
@@ -1466,7 +1476,7 @@ void RadioManagement_HandleRxIQSignalCodecGain()
     }
     else                    // not in "AUTO" mode
     {
-        rfg_calc = (float)ts.rf_codec_gain;     // get copy of RF gain setting
+        rfg_calc = ts.rf_codec_gain;     // get copy of RF gain setting
         auto_rfg = rfg_calc;        // keep "auto" variable updated with manual setting when in manual mode
         rfg_timer = 0;
     }
@@ -1480,7 +1490,7 @@ void RadioManagement_HandleRxIQSignalCodecGain()
         rfg_calc = 31;
     }
 
-    Codec_IQInGainAdj((uint8_t)rfg_calc); // set the RX gain on the codec
+    Codec_IQInGainAdj(rfg_calc); // set the RX gain on the codec
 
     // Now calculate the RF gain setting
     gcalc = pow10(((rfg_calc * 1.5) - 34.5) / 10) ;

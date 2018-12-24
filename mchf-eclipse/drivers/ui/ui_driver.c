@@ -833,7 +833,7 @@ void UiDriver_Init()
 	  UiDriver_StartupScreen_LogIfProblem(AudioDriver_GetTranslateFreq() == 0,
 			"WARNING:  Freq. Translation is OFF!!!\nTranslation is STRONGLY recommended!!");
 	}
-	
+
 	// now run all inits which need to be done BEFORE going into test screen mode
 	uint8_t mirtemp;
 	if(ts.flags1 & FLAGS1_REVERSE_X_TOUCHSCREEN)
@@ -1427,10 +1427,10 @@ void UiDriver_DisplayDemodMode()
 		{
 			if(ts.txrx_mode == TRX_MODE_RX)
 			{
-				if(ads.fm.squelched == false)
+				if(ads.fm_conf.squelched == false)
 				{
 					// is audio not squelched?
-					if((ads.fm.subaudible_tone_detected) && (ts.fm_subaudible_tone_det_select))
+					if((ads.fm_conf.subaudible_tone_detected) && (ts.fm_subaudible_tone_det_select))
 					{
 						// is tone decoding enabled AND a tone being detected?
 						clr_fg =  Black;
@@ -1445,7 +1445,7 @@ void UiDriver_DisplayDemodMode()
 			}
 			else if(ts.txrx_mode == TRX_MODE_TX)	 	// in transmit mode?
 			{
-				if(ads.fm.tone_burst_active)	 		// yes - is tone burst active?
+				if(ads.fm_conf.tone_burst_active)	 		// yes - is tone burst active?
 				{
 					clr_fg = Black;
 					clr_bg = Yellow;	// Yes, make "FM" yellow
@@ -2893,14 +2893,14 @@ static void UiDriver_TimeScheduler()
 		}
 
 		// update the on-screen indicator of squelch/tone detection (the "FM" mode text) if there is a change of state of squelch/tone detection
-		if((old_squelch != ads.fm.squelched)
-				|| (old_tone_det != ads.fm.subaudible_tone_detected)
+		if((old_squelch != ads.fm_conf.squelched)
+				|| (old_tone_det != ads.fm_conf.subaudible_tone_detected)
 				|| (old_tone_det_enable != (bool)ts.fm_subaudible_tone_det_select))       // did the squelch or tone detect state just change?
 		{
 
 			UiDriver_DisplayDemodMode();                           // yes - update on-screen indicator to show that squelch is open/closed
-			old_squelch = ads.fm.squelched;
-			old_tone_det = ads.fm.subaudible_tone_detected;
+			old_squelch = ads.fm_conf.squelched;
+			old_tone_det = ads.fm_conf.subaudible_tone_detected;
 			old_tone_det_enable = (bool)ts.fm_subaudible_tone_det_select;
 		}
 
@@ -2949,13 +2949,13 @@ static void UiDriver_TimeScheduler()
 		// Has the timing for the tone burst expired?
 		if(ts.sysclock > ts.fm_tone_burst_timing)
 		{
-			ads.fm.tone_burst_active = 0;               // yes, turn the tone off
+			ads.fm_conf.tone_burst_active = 0;               // yes, turn the tone off
 		}
 
-		if(ads.fm.tone_burst_active != old_burst_active)       // did the squelch or tone detect state just change?
+		if(ads.fm_conf.tone_burst_active != old_burst_active)       // did the squelch or tone detect state just change?
 		{
 			UiDriver_DisplayDemodMode();                           // yes - update on-screen indicator to show that tone burst is on/off
-			old_burst_active = ads.fm.tone_burst_active;
+			old_burst_active = ads.fm_conf.tone_burst_active;
 		}
 	}
 
@@ -3452,7 +3452,7 @@ static void UiDriver_CheckEncoderTwo()
 					if(ts.dmod_mode != DEMOD_FM)	 	// is this *NOT* FM?  Change RF gain
 					{
 
-							ts.agc_wdsp_thresh = change_and_limit_int(ts.agc_wdsp_thresh,pot_diff_step,-20,120);
+							ts.agc_wdsp_conf.thresh = change_and_limit_int(ts.agc_wdsp_conf.thresh,pot_diff_step,-20,120);
 							AudioDriver_SetupAgcWdsp();
 					}
 					else	 		// it is FM - change squelch setting
@@ -3473,9 +3473,9 @@ static void UiDriver_CheckEncoderTwo()
 						}
 						else // AGC mode setting
 						{
-							//                    ts.agc_wdsp_tau_decay = change_and_limit_int(ts.agc_wdsp_tau_decay,pot_diff_step * 100,100,5000);
-							ts.agc_wdsp_mode = change_and_limit_uint(ts.agc_wdsp_mode,pot_diff_step,0,5);
-							ts.agc_wdsp_switch_mode = 1; // set flag, so that mode switching really takes place in AGC_prep
+							//                    ts.agc_wdsp.tau_decay = change_and_limit_int(ts.agc_wdsp.tau_decay,pot_diff_step * 100,100,5000);
+							ts.agc_wdsp_conf.mode = change_and_limit_uint(ts.agc_wdsp_conf.mode,pot_diff_step,0,5);
+							ts.agc_wdsp_conf.switch_mode = 1; // set flag, so that mode switching really takes place in AGC_prep
 							AudioDriver_SetupAgcWdsp();
 						}
 					UiDriver_DisplayNoiseBlanker(1);
@@ -4119,7 +4119,7 @@ static void UiDriver_DisplayRfGain(bool encoder_active)
 	if(ts.dmod_mode != DEMOD_FM) // NOT FM
 	{
 		label = "AGC";
-		value = ts.agc_wdsp_thresh;
+		value = ts.agc_wdsp_conf.thresh;
 	}
 	else // use SQL for FM
 	{
@@ -4151,7 +4151,7 @@ static void UiDriver_DisplayRfGain(bool encoder_active)
     }
     else // it is WDSP AGC and NOT FM
     {
-        value = ts.agc_wdsp_thresh;
+        value = ts.agc_wdsp.thresh;
     }
 
 	 */
@@ -4203,7 +4203,7 @@ static void UiDriver_DisplayNoiseBlanker(bool encoder_active)
 		else
 		{
 //#endif
-			switch(ts.agc_wdsp_mode)
+			switch(ts.agc_wdsp_conf.mode)
 			{
 			case 0:
 				label = "vLO";
@@ -4227,7 +4227,7 @@ static void UiDriver_DisplayNoiseBlanker(bool encoder_active)
 				label = "???";
 				break;
 			}
-			value = (int32_t)(ts.agc_wdsp_tau_decay[ts.agc_wdsp_mode] / 10.0);
+			value = (int32_t)(ts.agc_wdsp_conf.tau_decay[ts.agc_wdsp_conf.mode] / 10.0);
 			snprintf(temp,5,"%3ld",value);
 			val_txt = temp;
 		}
@@ -4327,7 +4327,7 @@ static void UiDriver_DisplayModulationType()
 	// Draw line for box
 	UiLcdHy28_DrawStraightLine(ts.Layout->DIGMODE.x,(ts.Layout->DIGMODE.y - 1),ts.Layout->DIGMODE.w,LCD_DIR_HORIZONTAL,bgclr);
 	UiLcdHy28_PrintTextCentered(ts.Layout->DIGMODE.x,ts.Layout->DIGMODE.y,ts.Layout->DIGMODE.w,txt,color,bgclr,0);
-	if(disp_resolution==RESOLUTION_480_320)
+	if(disp_resolution!=RESOLUTION_320_240)
 	{
 		UiLcdHy28_DrawStraightLineDouble(ts.Layout->DIGMODE.x,ts.Layout->DIGMODE.y+12,ts.Layout->DIGMODE.w,LCD_DIR_HORIZONTAL,bgclr);
 		UiLcdHy28_DrawStraightLine(ts.Layout->DIGMODE.x,ts.Layout->DIGMODE.y+14,ts.Layout->DIGMODE.w,LCD_DIR_HORIZONTAL,Blue);
@@ -4516,11 +4516,17 @@ static void UiDriver_HandleTXMeters()
         swrm.p_curr   = 0;
         swrm.fwd_calc = 0;
         swrm.rev_calc = 0;
+        swrm.high_vswr_detected = false;
 
 	}
 	else
 	{
 		static uint8_t    old_power_level = 99;
+
+		if(swrm.high_vswr_detected == true)
+		{
+			Board_RedLed(LED_STATE_TOGGLE);
+		}
 
 		// display FWD, REV power, in milliwatts - used for calibration - IF ENABLED
 		if(swrm.pwr_meter_disp)
@@ -5104,8 +5110,8 @@ static bool UiDriver_LoadSavedConfigurationAtStartup()
 		// let us make sure, the user knows what he/she is doing
 		// in case of change of mindes, do normal configuration load
 
-		uint32_t clr_fg, clr_bg;
-		const char* top_line;
+		uint32_t clr_fg = White, clr_bg = Black;
+		const char* top_line = "";
 
 		switch (load_mode)
 		{
@@ -5838,7 +5844,7 @@ void UiDriver_StartUpScreenFinish()
 	}
 	if (UiDriver_FirmwareVersionCheck())
 	{
-		hold_time = 10000; // 15s
+		hold_time = 10000; // 10s
 		txp = "Firmware change detected!\nPlease review settings!";
 		startUpScreen_nextLineY = UiLcdHy28_PrintTextCentered(ts.Layout->StartUpScreen_START.x,startUpScreen_nextLineY + 10,320,txp,White,Black,0);
 
@@ -5848,6 +5854,7 @@ void UiDriver_StartUpScreenFinish()
 	if(startUpError == true)
 	{
 		hold_time = 15000; // 15s
+		//hold_time = 3000; // 3s
 		txp = "Boot Delay because of Errors or Warnings";
 		clr = Red3;
 		fg_clr = Black;
@@ -6322,7 +6329,7 @@ static void UiAction_ChangeRxFilterOrFmToneBurst()
 	{
 		if(ts.fm_tone_burst_mode != FM_TONE_BURST_OFF)	 	// is tone burst mode enabled?
 		{
-			ads.fm.tone_burst_active = 1;					// activate the tone burst
+			ads.fm_conf.tone_burst_active = 1;					// activate the tone burst
 			ts.fm_tone_burst_timing = ts.sysclock + FM_TONE_BURST_DURATION;	// set the duration/timing of the tone burst
 		}
 	}
@@ -6523,6 +6530,13 @@ static void UiAction_BandMinusHold()
 			UiAction_ToggleWaterfallScopeDisplay();
 		}
 	}
+	else                                                    //skip freq -48kHz/magnify - for quick scan of band
+    {
+        if(ts.txrx_mode == TRX_MODE_RX)
+        {
+            df.tune_new -= TUNE_MULT * (48000 / (1 << sd.magnify));
+        }
+    }
 }
 
 static void UiAction_BandPlusHold()
@@ -6534,10 +6548,17 @@ static void UiAction_BandPlusHold()
 			UiAction_ToggleWaterfallScopeDisplay();
 		}
 	}
-	if(UiDriver_IsButtonPressed(BUTTON_PWR_PRESSED))	 	// and POWER button pressed-and-held at the same time?
+	else if(UiDriver_IsButtonPressed(BUTTON_PWR_PRESSED))	 	// and POWER button pressed-and-held at the same time?
 	{
 		UiDriver_PowerDownCleanup(false); // do not save the configuration
 	}
+	else                                                    //skip freq +48kHz/magnify - for quick scan of band
+    {
+        if(ts.txrx_mode == TRX_MODE_RX)
+        {
+            df.tune_new += TUNE_MULT * (48000 / (1 << sd.magnify));
+        }
+    }
 }
 
 static void UiAction_PowerHold()
@@ -7100,7 +7121,7 @@ void UiDriver_TaskHandler_MainTasks()
 				uint16_t AGC_bg_clr = Black;
 				uint16_t AGC_fg_clr = Black;
 
-				if(ts.agc_wdsp_hang_action == 1 && ts.agc_wdsp_hang_enable == 1)
+				if(ts.agc_wdsp_conf.hang_action == 1 && ts.agc_wdsp_conf.hang_enable == 1)
 				{
 					AGC_bg_clr = White;
 					AGC_fg_clr = Black;
@@ -7110,7 +7131,7 @@ void UiDriver_TaskHandler_MainTasks()
 					AGC_bg_clr = Blue;
 					AGC_fg_clr = White;
 				}
-				if(ts.agc_wdsp_action == 1)
+				if(ts.agc_wdsp_conf.action == 1)
 				{
 					txt = "AGC";
 				}

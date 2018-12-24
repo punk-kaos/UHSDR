@@ -79,11 +79,20 @@
 #ifndef EXTERNAL_USE_GFX_CONFIG
   #define USE_GFX_ILI932x
   #define USE_GFX_ILI9486
-  #define USE_GFX_SSD1289
+  // SSD1289 support is not yet working, also requires USE_GFX_ILI932x to be enabled for now.
+  // #define USE_GFX_SSD1289
   #define USE_DISP_480_320
+#if defined(STM32F7) || defined(STM32H7)
+  #define USE_GFX_RA8875
+#endif
 #endif
 
-  #define USE_FFT_1024
+#if !defined(USE_GFX_ILI932x) && !defined(USE_GFX_ILI9486)
+#warning Both USE_GFX_ILI932x and USE_GFX_ILI9486 are disabled, no display driver will be available!
+#endif
+
+#define USE_FFT_1024
+
 #ifndef IS_SMALL_BUILD
   #define USE_8bit_FONT
   #define USE_PREDEFINED_WINDOW_DATA
@@ -598,6 +607,22 @@ enum
 extern BandRegs vfo[VFO_MAX];
 
 
+typedef struct
+{
+    uint8_t mode;
+        uint8_t slope;
+        uint8_t hang_enable;
+        int     thresh;
+        int     hang_thresh;
+        int hang_time;
+        uint8_t action;
+        uint8_t switch_mode;
+        uint8_t hang_action;
+        int tau_decay[6];
+        int tau_hang_decay;
+} agc_wdsp_param_t;
+
+
 // Transceiver state public structure
 typedef struct TransceiverState
 {
@@ -627,17 +652,7 @@ typedef struct TransceiverState
 
     // timer for muting of input into signal processing chains (TX/RX)
     uint16_t    audio_processor_input_mute_counter;
-#define IQ_ADJUST_POINTS_NUM 4
 
-    // corresponding frequencies are stored in const array iq_adjust_freq
-#define IQ_80M 0
-#define IQ_10M 1
-#define IQ_20M 2
-
-    iq_balance_data_t tx_iq_gain_balance[IQ_ADJUST_POINTS_NUM];  // setting for TX IQ gain balance
-    iq_balance_data_t tx_iq_phase_balance[IQ_ADJUST_POINTS_NUM]; // setting for TX IQ phase balance
-    iq_balance_data_t rx_iq_gain_balance[IQ_ADJUST_POINTS_NUM];  // setting for RX IQ gain balance
-    iq_balance_data_t rx_iq_phase_balance[IQ_ADJUST_POINTS_NUM]; // setting for RX IQ phase balance
 
     iq_float_t tx_adj_gain_var[IQ_TRANS_NUM];    // active variables for adjusting tx gain balance
     iq_float_t rx_adj_gain_var;    // active variables for adjusting rx gain balance
@@ -906,7 +921,9 @@ typedef struct TransceiverState
     uint16_t	version_number_minor;		// version number - minor - used to hold version number and detect change
     uint16_t	version_number_major;		// version number - build - used to hold version number and detect change
     uint16_t	version_number_release;		// version number - release - used to hold version number and detect change
+#ifdef OBSOLETE_AGC
     uint8_t	nb_agc_time_const;			// used to calculate the AGC time constant
+#endif
     uint8_t	cw_offset_mode;				// CW offset mode (USB, LSB, etc.)
     bool	cw_lsb;					// flag used to indicate that CW is to operate in LSB when TRUE
     int32_t	iq_freq_mode;				// used to set/configure the I/Q frequency/conversion mode
@@ -981,20 +998,19 @@ typedef struct TransceiverState
 	uint8_t	meter_colour_down;
 	uint8_t   iq_auto_correction;     // switch variable for automatic IQ correction
 	bool	display_rx_iq;
+
+	// twinpeak_tested = 2 --> wait for system to warm up
+    // twinpeak_tested = 0 --> go and test the IQ phase
+    // twinpeak_tested = 1 --> tested, verified, go and have a nice day!
+#define TWINPEAKS_WAIT 2
+#define TWINPEAKS_DONE 1
+#define TWINPEAKS_SAMPLING 0
+#define TWINPEAKS_UNCORRECTABLE 4
 	uint8_t twinpeaks_tested;
-//	uint8_t agc_wdsp;
-	uint8_t agc_wdsp_mode;
-	uint8_t agc_wdsp_slope;
-	uint8_t agc_wdsp_hang_enable;
-	int     agc_wdsp_thresh;
-	int     agc_wdsp_hang_thresh;
-	int agc_wdsp_hang_time;
-	uint8_t agc_wdsp_action;
-	uint8_t agc_wdsp_switch_mode;
-	uint8_t agc_wdsp_hang_action;
-	int dbm_constant;
-	int agc_wdsp_tau_decay[6];
-	int agc_wdsp_tau_hang_decay;
+
+	agc_wdsp_param_t agc_wdsp_conf;
+
+    int dbm_constant;
 
 //#define DISPLAY_S_METER_STD   0
 #define DISPLAY_S_METER_DBM   1
@@ -1080,6 +1096,7 @@ typedef struct TransceiverState
 //	bool nr_long_tone_reset; // used to reset gains of the long tone detection to 1.0
 //	int16_t nr_vad_delay; // how many frames to delay the noise estimate after VAD has detected NOISE
 //	int16_t nr_mode;
+
 	bool nr_fft_256_enable; // debugging: enable FFT256 instead of FFT128 for spectral NR
 	uint16_t NR_FFT_L; // resulting FFT length: 128 or 256
 	uint8_t NR_FFT_LOOP_NO;
@@ -1095,6 +1112,8 @@ typedef struct TransceiverState
 	bool txrx_switching_enabled;
 
 	bool paddles_active; // setting this to false disables processing of external gpio interrupts (right now just the paddles/PTT)
+
+	uint8_t debug_vswr_protection_threshold; // 0 - protection OFF
 } TransceiverState;
 //
 extern __IO TransceiverState ts;

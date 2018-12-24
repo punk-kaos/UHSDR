@@ -2,7 +2,7 @@
 [//]: # (                                                                              )
 [//]: # ( WARNING: generated data!  DO NOT EDIT MANUALLY ! ! !                         )
 [//]: # (                                                                              )
-[//]: # ( generated at  2018-11-20T21:26:00  by "./ui_menu_structure_mdtable.py" )
+[//]: # ( generated at  2018-12-20T18:44:19  by "./ui_menu_structure_mdtable.py" )
 [//]: # (                                                                              )
 [//]: # ( mcHF SDR TRX v.. - Menu Structure Diagram as MarkDown-Table )
 [//]: # (                                                                              )
@@ -11,7 +11,7 @@
 
 # uhsdr firmware v.. - UI Menu Overview
 
-generated at  2018-11-20T21:26:00  by "./ui_menu_structure_mdtable.py"
+generated at  2018-12-20T18:44:19  by "./ui_menu_structure_mdtable.py"
 
 
 
@@ -268,6 +268,7 @@ generated at  2018-11-20T21:26:00  by "./ui_menu_structure_mdtable.py"
 | **Bootloader**                (                            INFO_BL_VERSION) | bootloader version                             | 
 | **RF Board**                  (                               INFO_RFBOARD) | Displays the detected RF Board hardware identification. | 
 | **Audio Codec Presence**      (                                 INFO_CODEC) | Audio Codec I2C communication successfully tested? This is not a full test of the Audio Codec functionality, it only reports if I2C communication reported no problem talking to the codec. | 
+| **Audio Codec Twinpeaks Corr.** (                       INFO_CODEC_TWINPEAKS) | In some cases the audio codec needs to be restarted to produce correct IQ. The IQ auto correction detects this. If this fixes the problem, Done is displayed, Failed otherwise | 
 | **Backup RAM Battery**        (                                  INFO_VBAT) | Battery Support for Backup RAM present?        | 
 | **Real Time Clock**           (                                   INFO_RTC) | Battery Supported Real Time Clock present?     | 
 | **FW license**                (                               INFO_LICENCE) | Display license of firmware                    | 
@@ -301,6 +302,20 @@ generated at  2018-11-20T21:26:00  by "./ui_menu_structure_mdtable.py"
 | **HMC1023 Bypass**            (                  MENU_DEBUG_HMC1023_BYPASS) | Debug Setting: Set HMC1023 to bypass mode      | 
 | **HMC1023 Opamp Bias**        (                   MENU_DEBUG_HMC1023_OPAMP) | Debug Setting: Switch LPF HMC1023LP5E Opamp Bias | 
 | **HMC1023 Driver Bias**       (                    MENU_DEBUG_HMC1023_DRVR) | Debug Setting: Set HMC1023 Driver Bias         | 
+| **Trigger Twinpeaks Corr.**   (              MENU_DEBUG_TWINPEAKS_CORR_RUN) | Trigger Twinpeaks Correction Manually if IQ Auto Correction is enabled, otherwise you will see 'Not Possible' | 
+| **TX IQ Balance (20m)**       (                  CONFIG_20M_TX_IQ_GAIN_BAL) | IQ Balance Adjust for all transmission if frequency translation is NOT OFF. Calibrate on 14.100 MHz. | 
+| **TX IQ Phase   (20m)**       (                 CONFIG_20M_TX_IQ_PHASE_BAL) | IQ Phase Adjust for all transmission if frequency translation is NOT OFF. Calibrate on 14.100 MHz. | 
+| **TX IQ Balance (15m)**       (                  CONFIG_15M_TX_IQ_GAIN_BAL) | IQ Balance Adjust for all transmission if frequency translation is NOT OFF. Calibrate on 21.100 MHz. | 
+| **TX IQ Phase   (15m)**       (                 CONFIG_15M_TX_IQ_PHASE_BAL) | IQ Phase Adjust for all transmission if frequency translation is NOT OFF. Calibrate on 21.100 MHz. | 
+| **TX IQ Balance (10mUp)**     (               CONFIG_10M_UP_TX_IQ_GAIN_BAL) | IQ Balance Adjust for all transmission if frequency translation is NOT OFF. Calibrate on 29.650 MHz. | 
+| **TX IQ Phase   (10mUp)**     (              CONFIG_10M_UP_TX_IQ_PHASE_BAL) | IQ Phase Adjust for all transmission if frequency translation is NOT OFF. Calibrate on 29.650 MHz. | 
+| **TX IQ Balance (20m,CW)**    (        CONFIG_20M_TX_IQ_GAIN_BAL_TRANS_OFF) | IQ Balance Adjust for all transmission if frequency translation is OFF. Calibrate on 14.100 MHz. | 
+| **TX IQ Phase   (20m,CW)**    (       CONFIG_20M_TX_IQ_PHASE_BAL_TRANS_OFF) | IQ Phase Adjust for all transmission if frequency translation is OFF. Calibrate on 14.100 MHz. | 
+| **TX IQ Balance (15m,CW)**    (        CONFIG_15M_TX_IQ_GAIN_BAL_TRANS_OFF) | IQ Balance Adjust for all transmission if frequency translation is OFF. Calibrate on 21.100 MHz. | 
+| **TX IQ Phase   (15m,CW)**    (       CONFIG_15M_TX_IQ_PHASE_BAL_TRANS_OFF) | IQ Phase Adjust for all transmission if frequency translation is OFF. Calibrate on 21.100 MHz. | 
+| **TX IQ Balance (10mUp,CW)**  (     CONFIG_10M_UP_TX_IQ_GAIN_BAL_TRANS_OFF) | IQ Balance Adjust for all transmission if frequency translation is OFF. Calibrate on 29.650 MHz. | 
+| **TX IQ Phase   (10mUp,CW)**  (    CONFIG_10M_UP_TX_IQ_PHASE_BAL_TRANS_OFF) | IQ Phase Adjust for all transmission if frequency translation is OFF. Calibrate on 29.650 MHz. | 
+| **VSWR Protect. threshold**   (       MENU_DEBUG_VSWR_PROTECTION_THRESHOLD) | If not OFF, on TX/tune the bias of PA will be down to 0 when exceeding the specified value of VSWR | 
 
 
 [//]: # ( EOFILE                                                                       )

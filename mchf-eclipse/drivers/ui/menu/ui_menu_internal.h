@@ -132,6 +132,7 @@ enum
     CONFIG_FREQ_LIMIT_RELAX,
     CONFIG_FREQ_MEM_LIMIT_RELAX,
     CONFIG_IQ_AUTO_CORRECTION,
+
     CONFIG_80M_RX_IQ_GAIN_BAL,
     CONFIG_80M_RX_IQ_PHASE_BAL,
     CONFIG_10M_RX_IQ_GAIN_BAL,
@@ -144,6 +145,21 @@ enum
     CONFIG_80M_TX_IQ_PHASE_BAL_TRANS_OFF,
     CONFIG_10M_TX_IQ_GAIN_BAL_TRANS_OFF,
     CONFIG_10M_TX_IQ_PHASE_BAL_TRANS_OFF,
+
+    CONFIG_20M_TX_IQ_GAIN_BAL,
+    CONFIG_20M_TX_IQ_PHASE_BAL,
+    CONFIG_15M_TX_IQ_GAIN_BAL,
+    CONFIG_15M_TX_IQ_PHASE_BAL,
+    CONFIG_10M_UP_TX_IQ_GAIN_BAL,
+    CONFIG_10M_UP_TX_IQ_PHASE_BAL,
+    CONFIG_20M_TX_IQ_GAIN_BAL_TRANS_OFF,
+    CONFIG_20M_TX_IQ_PHASE_BAL_TRANS_OFF,
+    CONFIG_15M_TX_IQ_GAIN_BAL_TRANS_OFF,
+    CONFIG_15M_TX_IQ_PHASE_BAL_TRANS_OFF,
+    CONFIG_10M_UP_TX_IQ_GAIN_BAL_TRANS_OFF,
+    CONFIG_10M_UP_TX_IQ_PHASE_BAL_TRANS_OFF,
+
+
     CONFIG_CW_PA_BIAS,
     CONFIG_PA_BIAS,
     CONFIG_FWD_REV_PWR_DISP,
@@ -282,6 +298,8 @@ enum
     MENU_DEBUG_HMC1023_BYPASS,
     MENU_DEBUG_HMC1023_OPAMP,
     MENU_DEBUG_HMC1023_DRVR,
+    MENU_DEBUG_TWINPEAKS_CORR_RUN,
+    MENU_DEBUG_VSWR_PROTECTION_THRESHOLD,
 
     CONFIG_RTC_START,
     CONFIG_RTC_HOUR,
@@ -364,7 +382,7 @@ typedef struct
 
 extern const MenuGroupDescriptor groups[];
 
-void UiMenu_UpdateItem(uint16_t select, uint16_t mode, int pos, int var, char* options, const char** txt_ptr_ptr, uint32_t* clr_ptr);
+void UiMenu_UpdateItem(uint16_t select, MenuProcessingMode_t mode, int pos, int var, char* options, const char** txt_ptr_ptr, uint32_t* clr_ptr);
 void UiMenu_DisplayValue(const char* value,uint32_t clr,uint16_t pos);
 
 #endif /* DRIVERS_UI_UI_MENU_INTERNAL_H_ */
