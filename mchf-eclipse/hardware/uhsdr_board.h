@@ -318,11 +318,11 @@ struct mchf_waterfall
 //
 #define	BAND_MODE_10			8
 #define	BAND_FREQ_10			28000*KHZ_MULT		// 28000 kHz
-#define	BAND_SIZE_10			1700*KHZ_MULT		//  1700 kHz in size
+#define	BAND_SIZE_10			1700*KHZ_MULT		// 1700 kHz in size
 //
 #define	BAND_MODE_6			9
 #define	BAND_FREQ_6			50000*KHZ_MULT		// 50000 kHz
-#define	BAND_SIZE_6			4000*KHZ_MULT		// 2000 kHz in size (Region 2)
+#define	BAND_SIZE_6			2000*KHZ_MULT		// 2000 kHz in size (Region 2)
 //
 #define	BAND_MODE_4			10
 #define	BAND_FREQ_4			70000*KHZ_MULT		// 70000 kHz
@@ -330,11 +330,11 @@ struct mchf_waterfall
 //
 #define	BAND_MODE_2			11
 #define	BAND_FREQ_2			144000*KHZ_MULT		// 144000 kHz
-#define	BAND_SIZE_2			4000*KHZ_MULT		// 2000 kHz in size (Region 1)
+#define	BAND_SIZE_2			2000*KHZ_MULT		// 2000 kHz in size (Region 1)
 //
 #define	BAND_MODE_70			12
-#define	BAND_FREQ_70			420000*KHZ_MULT		// 430000 kHz
-#define	BAND_SIZE_70			50000*KHZ_MULT		// 10000 kHz in size (Region 1)
+#define	BAND_FREQ_70			430000*KHZ_MULT		// 430000 kHz
+#define	BAND_SIZE_70			10000*KHZ_MULT		// 10000 kHz in size (Region 1)
 //
 #define	BAND_MODE_23			13
 #define	BAND_FREQ_23			450000*KHZ_MULT		// 1240000 kHz
@@ -371,7 +371,7 @@ struct mchf_waterfall
 
 #define	BAND_FILTER_UPPER_10		32000000			// Upper limit for 10 meter filter
 //
-#define	BAND_FILTER_UPPER_6		60000000			// Upper limit for 6 meter filter
+#define	BAND_FILTER_UPPER_6		40000000			// Upper limit for 6 meter filter
 //
 #define	BAND_FILTER_UPPER_4		70000000			// Upper limit for 4 meter filter
 //
